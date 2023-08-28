@@ -14,23 +14,11 @@ function loadVideo(num, cb) {
       return cb(err);
     }
 
-    // get highest bitrate:
-    // const videoData = json.video
-    //   .sort((v1, v2) => v1.avg_bitrate - v2.avg_bitrate)
-    //   .pop();
-
-    // get preferred bit rate, if available:
+    // get preferred bit rate, if available, otherwise highest:
     const videoData =
       json.video.find((v) => v.height == 540) ??
       json.video.find((v) => v.height == 720) ??
       json.video.sort((v1, v2) => v1.avg_bitrate - v2.avg_bitrate).pop();
-
-    if (!videoData) {
-      // get highest bitrate:
-      videoData = json.video
-        .sort((v1, v2) => v1.avg_bitrate - v2.avg_bitrate)
-        .pop();
-    }
 
     let audioData = {};
     if (json.audio !== null) {
