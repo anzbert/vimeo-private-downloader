@@ -20,25 +20,16 @@ function loadVideo(num, cb) {
       json.video.find((v) => v.height == 720) ??
       json.video.sort((v1, v2) => v1.avg_bitrate - v2.avg_bitrate).pop();
 
-    let audioData = {};
-    if (json.audio !== null) {
-      audioData = json.audio
-        .sort((a1, a2) => a1.avg_bitrate - a2.avg_bitrate)
-        .pop();
-    }
-
     const videoBaseUrl = resolve(
       resolve(masterUrl, json.base_url),
       videoData.base_url
     );
 
-    let audioBaseUrl = "";
-    if (json.audio !== null) {
-      audioBaseUrl = resolve(
-        resolve(masterUrl, json.base_url),
-        audioData.base_url
-      );
-    }
+    const audioData =
+      json.audio.sort((a1, a2) => a1.avg_bitrate - a2.avg_bitrate).pop() ?? {};
+
+    const audioBaseUrl =
+      resolve(resolve(masterUrl, json.base_url), audioData.base_url) ?? "";
 
     processFile(
       "video",
@@ -119,7 +110,7 @@ function processFile(type, baseUrl, initData, segments, filename, cb) {
     }
   );
 }
-
+/** Combine downloaded segments */
 function combineSegments(
   type,
   i,
@@ -183,6 +174,7 @@ function combineSegments(
   });
 }
 
+/** download master.JSON file */
 function getJson(url, n, cb) {
   let data = "";
 
@@ -202,6 +194,7 @@ function getJson(url, n, cb) {
   });
 }
 
+/**  Main Function */
 function initJs(n = 0) {
   if (!list[n] || (!list[n].name && !list[n].url)) return;
 
