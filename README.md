@@ -13,7 +13,7 @@ To download videos you have to:
 1.  Open the browser developer tools on the network tab (`F12` on Windows/Linux, `CMD + Option + I` on Mac OS).
 2.  Start the video (or move mouse over the video).
 3.  In the "Network" tab, locate the load of the "master.json" file, copy its full URL.
-3.1. In some cases Vimeo sends you encrypted video data, that you can workaround by either removing 'query_string_ranges' query parameter and/or adding 'base64_init=1' to it. 
+    3.1. In some cases Vimeo sends you encrypted video data, that you can workaround by either removing 'query_string_ranges' query parameter and/or adding 'base64_init=1' to it.
 4.  Fill in `url` and `name`(using as filename) fields in `videojson.js` file
 5.  Run: `node index.js` or `npm run start`
 6.  Wait for console output `🌈 List finished`
@@ -24,9 +24,10 @@ To combine and convert video/audio parts to `mp4` file run in terminal `sh vimeo
 
 ## Docker configuration
 
-There is a Dockerfile available in the repository which uses Alpine image with Node 18 installed. 
+There is a Dockerfile available in the repository which uses Alpine image with Node 18 installed.
 
-Several Makefile commands have been added in order to 
+Several Makefile commands have been added in order to
+
 - `make build`: builds `FROM node:18-alpine` Docker image installing `ffmpeg` OS dependency as well
 - `make start`: executes `npm run start` entrypoint
 - `make convert`: executes `npm run convert` entrypoint

@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./index.js",
     "combine": "sh vimeo-combine.sh",
+    "all": "node ./index.js && sh vimeo-combine.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

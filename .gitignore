@@ -11,6 +11,6 @@ yarn.lock
 *.zip
 converted/*.mp4
 combine.sh
-
+.DS_Store
 .idea
 .vscode
