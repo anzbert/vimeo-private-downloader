@@ -1,8 +1,9 @@
-const fs = require("fs");
-const url = require("url");
-const https = require("https");
+import { existsSync, writeFileSync, createWriteStream, unlinkSync } from "fs";
+import { resolve } from "url";
+import { get } from "https";
+import list from "./videojson.js";
+
 const log = (...args) => console.log("→", ...args);
-const list = require("./videojson.js");
 
 function loadVideo(num, cb) {
   let rawMasterUrl = new URL(list[num].url);
@@ -38,15 +39,15 @@ function loadVideo(num, cb) {
         .pop();
     }
 
-    const videoBaseUrl = url.resolve(
-      url.resolve(masterUrl, json.base_url),
+    const videoBaseUrl = resolve(
+      resolve(masterUrl, json.base_url),
       videoData.base_url
     );
 
     let audioBaseUrl = "";
     if (json.audio !== null) {
-      audioBaseUrl = url.resolve(
-        url.resolve(masterUrl, json.base_url),
+      audioBaseUrl = resolve(
+        resolve(masterUrl, json.base_url),
         audioData.base_url
       );
     }
@@ -88,13 +89,13 @@ function processFile(type, baseUrl, initData, segments, filename, cb) {
   const filePath = `./parts/${file}`;
   const downloadingFlag = `./parts/.${file}~`;
 
-  if (fs.existsSync(downloadingFlag)) {
+  if (existsSync(downloadingFlag)) {
     log("⚠️", ` ${file} - ${type} is incomplete, restarting the download`);
-  } else if (fs.existsSync(filePath)) {
+  } else if (existsSync(filePath)) {
     log("⚠️", ` ${file} - ${type} already exists`);
     cb();
   } else {
-    fs.writeFileSync(downloadingFlag, "");
+    writeFileSync(downloadingFlag, "");
   }
 
   const segmentsUrl = segments.map((seg) => {
@@ -107,9 +108,9 @@ function processFile(type, baseUrl, initData, segments, filename, cb) {
   });
 
   const initBuffer = Buffer.from(initData, "base64");
-  fs.writeFileSync(filePath, initBuffer);
+  writeFileSync(filePath, initBuffer);
 
-  const output = fs.createWriteStream(filePath, {
+  const output = createWriteStream(filePath, {
     flags: "a",
   });
 
@@ -141,8 +142,8 @@ function combineSegments(
   cb
 ) {
   if (i >= segmentsUrl.length) {
-    if (fs.existsSync(downloadingFlag)) {
-      fs.unlinkSync(downloadingFlag);
+    if (existsSync(downloadingFlag)) {
+      unlinkSync(downloadingFlag);
     }
     log("🏁", ` ${filename} - ${type} done`);
     return cb();
@@ -154,33 +155,31 @@ function combineSegments(
     `Downloading ${type} segment ${i}/${segmentsUrl.length} of ${filename}`
   );
 
-  let req = https
-    .get(segmentsUrl[i], (res) => {
-      if (res.statusCode != 200) {
-        cb(
-          new Error(
-            `Downloading segment with url '${segmentsUrl[i]}' failed with status: ${res.statusCode} ${res.statusMessage}`
-          )
-        );
-      }
-
-      res.on("data", (d) => output.write(d));
-
-      res.on("end", () =>
-        combineSegments(
-          type,
-          i + 1,
-          segmentsUrl,
-          output,
-          filename,
-          downloadingFlag,
-          cb
+  let req = get(segmentsUrl[i], (res) => {
+    if (res.statusCode != 200) {
+      cb(
+        new Error(
+          `Downloading segment with url '${segmentsUrl[i]}' failed with status: ${res.statusCode} ${res.statusMessage}`
         )
       );
-    })
-    .on("error", (e) => {
-      cb(e);
-    });
+    }
+
+    res.on("data", (d) => output.write(d));
+
+    res.on("end", () =>
+      combineSegments(
+        type,
+        i + 1,
+        segmentsUrl,
+        output,
+        filename,
+        downloadingFlag,
+        cb
+      )
+    );
+  }).on("error", (e) => {
+    cb(e);
+  });
 
   req.setTimeout(7000, function () {
     log("⚠️", "Timeout. Retrying");
@@ -199,22 +198,20 @@ function combineSegments(
 function getJson(url, n, cb) {
   let data = "";
 
-  https
-    .get(url, (res) => {
-      if (res.statusMessage.toLowerCase() !== "gone") {
-        res.on("data", (d) => (data += d));
-        res.on("end", () => cb(null, JSON.parse(data)));
-      } else {
-        return cb(
-          `The master.json file is expired or crushed. Please update or remove it from the sequence (broken on ` +
-            n +
-            ` position)`
-        );
-      }
-    })
-    .on("error", (e) => {
-      return cb(e);
-    });
+  get(url, (res) => {
+    if (res.statusMessage.toLowerCase() !== "gone") {
+      res.on("data", (d) => (data += d));
+      res.on("end", () => cb(null, JSON.parse(data)));
+    } else {
+      return cb(
+        `The master.json file is expired or crushed. Please update or remove it from the sequence (broken on ` +
+          n +
+          ` position)`
+      );
+    }
+  }).on("error", (e) => {
+    return cb(e);
+  });
 }
 
 function initJs(n = 0) {

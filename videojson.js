@@ -1,4 +1,4 @@
-module.exports = [
+export default [
   {
     name: "Core_43",
     url: "https://53vod-adaptive.akamaized.net/exp=1693222482~acl=%2F3c424b6d-b5a9-4bd4-848b-9ebafc3216c4%2F%2A~hmac=958bec1eb71a6669e62be70d9593fb7a1d11c283b4ecbe67626cbd8cc53b91e9/3c424b6d-b5a9-4bd4-848b-9ebafc3216c4/sep/video/0ca6e80b,1b7e1946,7f752885,a30e436b,a79a6c1f/master.json?base64_init=1",
